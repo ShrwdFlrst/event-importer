@@ -55,16 +55,13 @@ class EventImporter
      */
     public function init()
     {
-        // Clear table
-        $this->dbManager->query("DROP TABLE IF EXISTS `events`");
-
         // Create table
         $this->dbManager->query("CREATE TABLE IF NOT EXISTS `events`(
             id INT NOT NULL AUTO_INCREMENT,
             `eventDatetime` DATETIME NOT NULL,
             `eventAction` VARCHAR(20) NOT NULL,
             `callRef` INT NOT NULL,
-            `eventValue` DECIMAL,
+            `eventValue` DECIMAL (10, 2),
             `eventCurrencyCode` VARCHAR(3),
             PRIMARY KEY (id)
         )");
@@ -87,8 +84,65 @@ class EventImporter
         }
     }
 
+    /**
+     * @param array $data
+     */
     private function saveData(array $data)
     {
-        
+        $this->dbManager->beginTransaction();
+        $defaults = ['eventValue' => null, 'eventCurrencyCode' => null];
+
+        $sql = 'INSERT INTO `events` 
+          (callRef, eventAction, eventCurrencyCode, eventDatetime, eventValue) 
+          VALUES 
+        (:callRef, :eventAction, :eventCurrencyCode, :eventDatetime, :eventValue)';
+        $stmt = $this->dbManager->prepare($sql);
+
+        foreach ($data as $row) {
+            // Remove empty cells
+            $row = array_filter($row, function($item){
+                return $item !== '';
+            });
+
+            // If data is invalid, log and try the next row
+            if (!$this->validateRow($row)) {
+                $this->logger->warning('Invalid data: '.var_export($row, true));
+                continue;
+            }
+
+            // Save valid data as part of transaction
+            $row = array_merge($defaults, $row);
+            $stmt->bindParam('callRef', $row['callRef'], PDO::PARAM_INT);
+            $stmt->bindParam('eventAction', $row['eventAction'], PDO::PARAM_STR);
+            $stmt->bindParam('eventCurrencyCode', $row['eventCurrencyCode'], PDO::PARAM_STR);
+            $stmt->bindParam('eventDatetime', $row['eventDatetime'], PDO::PARAM_STR);
+            $stmt->bindParam('eventValue', $row['eventValue'], PDO::PARAM_STR);
+            $stmt->execute();
+        }
+
+        $this->dbManager->commitTransaction();
+    }
+
+    /**
+     * @param array $row
+     * @return bool
+     */
+    private function validateRow(array $row): bool
+    {
+        $keys = array_keys($row);
+        $minRequired = ['eventDatetime', 'eventAction', 'callRef'];
+        $maxRequired = ['eventDatetime', 'eventAction', 'callRef', 'eventValue', 'eventCurrencyCode'];
+        sort($minRequired);
+        sort($maxRequired);
+        sort($keys);
+
+        $hasKeys = $keys == $minRequired || $keys == $maxRequired;
+        $hasRequired = !empty($row['eventDatetime']) && !empty($row['eventAction']) && !empty($row['callRef']);
+
+        if (count($keys) === count($maxRequired)) {
+            $hasRequired = $hasRequired && isset($row['eventValue']) && !empty($row['eventCurrencyCode']);
+        }
+
+        return $hasKeys && $hasRequired;
     }
 }

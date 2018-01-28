@@ -22,6 +22,31 @@ class DbManager
     }
 
     /**
+     * @return bool
+     */
+    public function beginTransaction()
+    {
+        return $this->connection->beginTransaction();
+    }
+
+    /**
+     * @return bool
+     */
+    public function commitTransaction()
+    {
+        return $this->connection->commit();
+    }
+
+    /**
+     * @param string $query
+     * @return PDOStatement
+     */
+    public function prepare(string $query): PDOStatement
+    {
+        return $this->connection->prepare($query);
+    }
+
+    /**
      * @param string $query
      */
     public function query(string $query): void

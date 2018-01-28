@@ -11,7 +11,7 @@ class Logger
     public function info(string $message): void
     {
         syslog(LOG_INFO, $message);
-        echo $message.PHP_EOL;
+//        echo $message.PHP_EOL;
     }
 
     /**
@@ -20,6 +20,15 @@ class Logger
     public function error(string $message): void
     {
         syslog(LOG_ERR, $message);
-        echo $message.PHP_EOL;
+//        echo $message.PHP_EOL;
+    }
+
+    /**
+     * @param string $message
+     */
+    public function warning(string $message): void
+    {
+        syslog(LOG_WARNING, $message);
+//        echo $message.PHP_EOL;
     }
 }

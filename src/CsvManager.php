@@ -7,7 +7,7 @@ class CsvManager
 {
     /**
      * @param string $path
-     * @return array
+     * @return array of the format [[HEADER_KEY => VALUE] ... ]
      * @see http://php.net/manual/en/function.str-getcsv.php#117692
      */
     public function readFile(string $path): array

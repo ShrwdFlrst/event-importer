@@ -17,6 +17,9 @@ $dbManager = new DbManager(
     getenv('DB_PASSWORD')
 );
 
+// Clear table for the purpose of the demo
+$dbManager->query("DROP TABLE IF EXISTS `events`");
+
 $importer = new EventImporter(
     $fileManager,
     $csvManager,
