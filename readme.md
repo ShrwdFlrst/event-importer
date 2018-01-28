@@ -16,7 +16,7 @@ Initialise environment vars and run the importer using test data.
 
 - Tab separated file is invalid CSV so ignored
 - 0 is a valid eventValue
-- Logger outputs to commandline for the purpose of the demo
+- Logger outputs to both syslog and commandline for the purpose of the demo
 - Processed files are copied for the purpose of the demo so script can be called multiple times easily
 
 
