@@ -6,6 +6,7 @@
 class EventImporter
 {
     const DIR_UPLOADS = 'uploaded/';
+    const DIR_PROCESSED = 'processed/';
     /**
      * @var FileManager
      */
@@ -72,6 +73,10 @@ class EventImporter
             `eventCurrencyCode` VARCHAR(3),
             PRIMARY KEY (id)
         )");
+
+        if (!is_dir($this->basePath.self::DIR_PROCESSED)) {
+            mkdir($this->basePath.self::DIR_PROCESSED);
+        }
     }
 
     /**
@@ -96,6 +101,7 @@ class EventImporter
             try {
                 $data = $this->csvManager->readFile($f);
                 $this->saveData($data);
+                $this->moveProcessedFile($f);
             } catch (Exception $e) {
                 $this->logger->error(sprintf('Couldn\'t process %s: %s', $f, $e->getMessage()));
             }
@@ -164,5 +170,15 @@ class EventImporter
         }
 
         return $hasKeys && $hasRequired;
+    }
+
+    /**
+     * @param string $source
+     */
+    private function moveProcessedFile(string $source)
+    {
+        // NOTE for the purpose of the test/demo, so it can
+        // be run repeatedly, this is a copy not a move
+        copy($source, $this->basePath.self::DIR_PROCESSED.basename($source));
     }
 }
