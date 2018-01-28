@@ -15,7 +15,7 @@ Initialise environment vars and run the importer using test data.
 ### Assumptions
 
 - Tab separated file is invalid CSV so ignored
-- 0 is a valid eventValue
+- 0 is a valid callRef, eventValue (if not they can be validated and filtered out)
 - Logger outputs to both syslog and commandline for the purpose of the demo
 - Processed files are copied for the purpose of the demo so script can be called multiple times easily
 
