@@ -135,6 +135,8 @@ class EventImporter
                 $this->logger->warning('Invalid data: '.var_export($row, true));
                 continue;
             }
+            $row['eventDatetime'] = strtotime($row['eventDatetime']);
+            $row['eventDatetime'] = date("Y-m-d H:i:s", $row['eventDatetime']);
 
             // Save valid data as part of transaction
             $row = array_merge($defaults, $row);
