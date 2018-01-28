@@ -26,6 +26,10 @@ class EventImporter
      * @var string
      */
     private $basePath;
+    /**
+     * @var Semaphore
+     */
+    private $semaphore;
 
     /**
      * EventImporter constructor.
@@ -33,6 +37,7 @@ class EventImporter
      * @param CsvManager $csvManager
      * @param DbManager $dbManager
      * @param Logger $logger
+     * @param Semaphore $semaphore
      * @param string $basePath
      */
     public function __construct(
@@ -40,6 +45,7 @@ class EventImporter
         CsvManager $csvManager,
         DbManager $dbManager,
         Logger $logger,
+        Semaphore $semaphore,
         string $basePath
     ) {
 
@@ -48,6 +54,7 @@ class EventImporter
         $this->dbManager = $dbManager;
         $this->logger = $logger;
         $this->basePath = $basePath;
+        $this->semaphore = $semaphore;
     }
 
     /**
@@ -72,7 +79,18 @@ class EventImporter
      */
     public function run()
     {
-        $files = $this->fileManager->readDir($this->basePath. self::DIR_UPLOADS);
+        if (!$this->semaphore->get()) {
+            $this->logger->warning('Process already running');
+            return;
+        }
+
+        $filePath = $this->basePath. self::DIR_UPLOADS;
+
+        try {
+            $files = $this->fileManager->readDir($filePath);
+        } catch (Exception $e) {
+            $this->logger->error(sprintf('Couldn\'t read from dir "%s": %s'), $filePath, $e->getMessage());
+        }
 
         foreach($files as $f) {
             try {
@@ -82,6 +100,8 @@ class EventImporter
                 $this->logger->error(sprintf('Couldn\'t process %s: %s', $f, $e->getMessage()));
             }
         }
+
+        $this->semaphore->release();
     }
 
     /**

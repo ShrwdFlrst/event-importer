@@ -4,11 +4,13 @@ require './src/FileManager.php';
 require './src/CsvManager.php';
 require './src/DbManager.php';
 require './src/Logger.php';
+require './src/Semaphore.php';
 require './src/EventImporter.php';
 
 $logger = new Logger();
 $fileManager = new FileManager();
 $csvManager = new CsvManager();
+$semaphore = new Semaphore("./importer_semaphore");
 
 $dbManager = new DbManager(
     getenv('DB_HOST'),
@@ -25,6 +27,7 @@ $importer = new EventImporter(
     $csvManager,
     $dbManager,
     $logger,
+    $semaphore,
     getenv('BASE_PATH')
 );
 
